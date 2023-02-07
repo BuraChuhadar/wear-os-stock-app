@@ -4,6 +4,11 @@
     This string is used for square devices and overridden by hello_world in
     values-round/strings.xml for round devices.
     -->
-    <string name="AddMoreStock">Add More Stock:</string>
     <string name="SearchHint">Search For a Stock Symbol:</string>
+    <string name="DeleteItemTitle">Delete Item</string>
+    <string name="DeleteItemConfirmation">Are you sure you want to delete this item?</string>
+    <string name="DeleteItemYes">Yes</string>
+    <string name="DeleteItemNo">No</string>
+    <string name="CouldNotRetrievePrice">N/A</string>
+    <string name="CouldNotRetrieveStockInformation">Couldn\'t retrieve some of the stock information. Try again later.</string>
 </resources>

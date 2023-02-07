@@ -9,18 +9,14 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SearchView;
 
-import com.example.stockmarket.helpers.Stock;
+import com.example.stockmarket.helpers.DTOs.AlphavantageSymbol;
+import com.example.stockmarket.helpers.DTOs.Symbol;
 import com.example.stockmarket.helpers.SymbolFetcher;
-import com.example.stockmarket.interfaces.IAlphaVantageAPI;
+import com.example.stockmarket.helpers.arrayadapters.SymbolArrayAdapter;
+import com.example.stockmarket.helpers.backgroundtasks.BackgroundSymbolAPICaller;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class SymbolSearchActivity extends Activity {
     private SearchView searchView;
@@ -48,7 +44,7 @@ public class SymbolSearchActivity extends Activity {
                 // make a request to the API with the query as the symbol
                 // update the symbols list with the results
                 // update the adapter
-                List<String> symbols = new SymbolFetcher().fetchSymbols(query);
+                List<Symbol> symbols = new BackgroundSymbolAPICaller().fetchSymbolsInBackground(query);
                 displaySymbols(symbols);
                 return false;
             }
@@ -60,16 +56,16 @@ public class SymbolSearchActivity extends Activity {
         });
     }
 
-    private void displaySymbols(List<String> symbols) {
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, symbols);
+    private void displaySymbols(List<Symbol> symbols) {
+        SymbolArrayAdapter<Symbol> adapter = new SymbolArrayAdapter<>(this, symbols);
         ListView listView = findViewById(R.id.list_view);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String symbol = (String) parent.getItemAtPosition(position);
+                Symbol symbol = (Symbol) parent.getItemAtPosition(position);
                 Intent intent = new Intent();
-                intent.putExtra(EXTRA_SYMBOL, symbol);
+                intent.putExtra(EXTRA_SYMBOL, symbol.getSymbol());
                 setResult(RESULT_OK, intent);
                 finish();
             }
