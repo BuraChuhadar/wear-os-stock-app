@@ -11,4 +11,5 @@
     <string name="DeleteItemNo">No</string>
     <string name="CouldNotRetrievePrice">N/A</string>
     <string name="CouldNotRetrieveStockInformation">Couldn\'t retrieve some of the stock information. Try again later.</string>
+    <string name="loading">loading</string>
 </resources>

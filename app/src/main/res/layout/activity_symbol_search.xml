@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#00FFFFFF">
+    android:background="?attr/colorSurface">
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
@@ -20,5 +20,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/loader_loading"
+            android:layout_gravity="center_horizontal"
+            android:contentDescription="@string/loading" />
     </LinearLayout>
 </androidx.wear.widget.BoxInsetLayout>

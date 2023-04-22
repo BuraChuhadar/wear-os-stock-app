@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary color and its variant -->
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryVariant">#303F9F</color>
+    <color name="colorOnPrimary">#FFFFFF</color> <!-- Text color on primary color backgrounds -->
+
+    <!-- Secondary color and its variant -->
+    <color name="colorSecondary">#FF4081</color>
+    <color name="colorSecondaryVariant">#F50057</color>
+    <color name="colorOnSecondary">#FFFFFF</color> <!-- Text color on secondary color backgrounds -->
+</resources>

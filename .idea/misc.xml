@@ -6,10 +6,13 @@
         <entry key="..\:/AndroidApps/app/src/main/res/layout/activity_main.xml" value="0.8571428571428571" />
         <entry key="..\:/AndroidApps/app/src/main/res/layout/activity_symbol_search.xml" value="0.8571428571428571" />
         <entry key="..\:/AndroidSDK/platforms/android-31/data/res/layout/simple_list_item_1.xml" value="0.675" />
+        <entry key="..\:/Users/Bura Chuhadar/source/repos/wear-os-stock-app/app/src/main/res/layout/activity_main.xml" value="1.1578947368421053" />
+        <entry key="..\:/Users/Bura Chuhadar/source/repos/wear-os-stock-app/app/src/main/res/layout/activity_symbol_search.xml" value="1.1578947368421053" />
+        <entry key="..\:/Users/Bura Chuhadar/source/repos/wear-os-stock-app/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="1.0857142857142856" />
       </map>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" project-jdk-name="jbr-17" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">

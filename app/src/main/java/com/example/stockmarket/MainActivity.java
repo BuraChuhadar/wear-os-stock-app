@@ -1,15 +1,12 @@
 package com.example.stockmarket;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.Image;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -17,28 +14,40 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.stockmarket.helpers.RestAPIClient;
-import com.example.stockmarket.helpers.backgroundtasks.BackgroundGlobalPriceAPICaller;
-import com.example.stockmarket.helpers.backgroundtasks.BackgroundGlobalPricesAPICaller;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelStoreOwner;
+import androidx.lifecycle.ViewModelStore;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.load.resource.gif.GifDrawable;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
+
+
+import com.example.stockmarket.helpers.DTOs.StockData;
+import com.example.stockmarket.helpers.viewmodels.StockViewModel;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity implements ViewModelStoreOwner{
     private static final String TAG = "MainActivity";
-    private List<String> currentGlobalPriceQuoteList = new ArrayList<>();
+    private final List<StockData> currentGlobalPriceQuoteList = new ArrayList<>();
     private List<String> currentGlobalSymbolList = new ArrayList<>();
-    private ArrayAdapter<String> currentGlobalPriceQuoteLArrayAdapter;
+    private ArrayAdapter<StockData> currentGlobalPriceQuoteLArrayAdapter;
     public static final int REQUEST_CODE_SEARCH_SYMBOL = 1;
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
@@ -46,17 +55,48 @@ public class MainActivity extends Activity {
     private ListView listStockInformationListView;
     private MainActivity mainActivity;
     private ImageView loadingImage;
+    private StockViewModel stockViewModel;
 
+    @Override
+    public ViewModelStore getViewModelStore() {
+        return super.getViewModelStore();
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Set the app to use dark mode
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         setContentView(R.layout.activity_main);
-        mainActivity = this;
-        listStockInformationListView = (ListView) findViewById(R.id.list_StockInformationListView);
+
         loadingImage = (ImageView)findViewById(R.id.imageView);
 
-        loadingImage.setVisibility(View.GONE);
-        listStockInformationListView.setVisibility(View.VISIBLE);
+        if (loadingImage != null) {
+            Glide.with(this)
+                    .asGif()
+                    .load(R.drawable.loader_loading)
+                    .listener(new RequestListener<GifDrawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
+                            Log.e(TAG, "GIF loading failed: ", e);
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
+                            Log.i(TAG, "GIF loaded successfully");
+                            return false;
+                        }
+                    })
+                    .into(loadingImage);
+        } else {
+            Log.e(TAG, "imageView is null");
+        }
+
+        mainActivity = this;
+        listStockInformationListView = (ListView) findViewById(R.id.list_StockInformationListView);
+
+        SetLoading(View.GONE, View.VISIBLE);
 
         listStockInformationListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
@@ -79,13 +119,24 @@ public class MainActivity extends Activity {
             }
         });
 
+        stockViewModel = new ViewModelProvider(this, new ViewModelProvider.Factory() {
+            @NonNull
+            @Override
+            public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
+                if (modelClass.isAssignableFrom(StockViewModel.class)) {
+                    return (T) new StockViewModel(MainActivity.this.getResources().getString(R.string.Finnhub_API_KEY));
+                }
+                throw new IllegalArgumentException("Unknown ViewModel class");
+            }
+        }).get(StockViewModel.class);
+
 
         getSharedPreferencesInstance();
         currentGlobalSymbolList = retrieveDataListFromStorage();
 
         Log.d("Symbol fetch", "fetching symbols");
         LoadStockInformation(currentGlobalSymbolList, currentGlobalPriceQuoteList, false);
-        currentGlobalPriceQuoteLArrayAdapter = new ArrayAdapter<>(mainActivity, android.R.layout.simple_list_item_1, currentGlobalPriceQuoteList);
+        currentGlobalPriceQuoteLArrayAdapter = new com.example.stockmarket.StockDataAdapter(mainActivity, R.layout.custom_list_item, currentGlobalPriceQuoteList);
         listStockInformationListView.setAdapter(currentGlobalPriceQuoteLArrayAdapter);
         Button searchButton = findViewById(R.id.btnAdd);
 
@@ -107,72 +158,69 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void SetLoading(int gone, int visible) {
+        loadingImage.setVisibility(gone);
+        listStockInformationListView.setVisibility(visible);
+    }
 
-    private void LoadStockInformation(List<String> symbols, List<String> existingPriceQuote, Boolean notifyChange) {
-        loadingImage.setVisibility(View.VISIBLE);
-        listStockInformationListView.setVisibility(View.GONE);
 
-        List<String> updatedGlobalPriceQuoteList = new ArrayList<>();
-        Boolean couldLoadAll = true;
-        try {
+    private void LoadStockInformation(List<String> symbols, List<StockData> existingPriceQuotes, Boolean notifyChange) {
+        SetLoading(View.VISIBLE, View.GONE);
 
-            BackgroundGlobalPricesAPICaller backgroundGlobalPricesAPICaller = new BackgroundGlobalPricesAPICaller();
-            List<String> globalPriceQuotes = backgroundGlobalPricesAPICaller.fetchGlobalPriceQuotesInBackground(symbols);
-            for(int i=0;i<symbols.size();i++){
-                Log.d("Symbol fetch", "fetching " + symbols.get(i) + globalPriceQuotes.get(i));
-                if (!globalPriceQuotes.get(i).equals("")) {
-                    BigDecimal bd = new BigDecimal(globalPriceQuotes.get(i)).setScale(2, RoundingMode.HALF_DOWN);
-                    updatedGlobalPriceQuoteList.add(symbols.get(i) + " : " + bd.doubleValue());
+        stockViewModel.fetchGlobalPriceQuotes(symbols).observe(this, stockDataList -> {
+            List<StockData> updatedGlobalPriceQuoteList = new ArrayList<>();
+            boolean couldLoadAll = true;
+
+            for (int i = 0; i < symbols.size(); i++) {
+                Log.d("Symbol fetch", "fetching " + symbols.get(i) + stockDataList.get(i));
+                StockData stockData = stockDataList.get(i);
+                if (stockData != null && !stockData.getLastPrice().equals("")) {
+                    updatedGlobalPriceQuoteList.add(stockData);
                 } else {
                     couldLoadAll = false;
-
-                    updatedGlobalPriceQuoteList.add(symbols.get(i) + " : N/A");
+                    StockData emptyStockData = new StockData(symbols.get(i), "N/A", "", "");
+                    updatedGlobalPriceQuoteList.add(emptyStockData);
                 }
             }
-        }
-        catch (Exception exception) {
-            Log.e(TAG, "\"Error retrieving the stock quote under MainActivity\"", exception);
-        }
 
-        if (!couldLoadAll) {
-            Toast.makeText(MainActivity.this, getResources().getString(R.string.CouldNotRetrieveStockInformation), Toast.LENGTH_SHORT).show();
-        }
+            if (!couldLoadAll) {
+                Toast.makeText(MainActivity.this, getResources().getString(R.string.CouldNotRetrieveStockInformation), Toast.LENGTH_SHORT).show();
+            }
 
-        existingPriceQuote.clear();
-        existingPriceQuote.addAll(updatedGlobalPriceQuoteList);
-        if (notifyChange) {
-            currentGlobalPriceQuoteLArrayAdapter.notifyDataSetChanged();
-        }
+            existingPriceQuotes.clear();
+            existingPriceQuotes.addAll(updatedGlobalPriceQuoteList);
+            if (notifyChange) {
+                currentGlobalPriceQuoteLArrayAdapter.notifyDataSetChanged();
+            }
 
-        loadingImage.setVisibility(View.GONE);
-        listStockInformationListView.setVisibility(View.VISIBLE);
+            SetLoading(View.GONE, View.VISIBLE);
+        });
     }
+
 
     @SuppressLint("SetTextI18n")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        SetLoading(View.VISIBLE, View.GONE);
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_SEARCH_SYMBOL && resultCode == RESULT_OK) {
             String symbol = data.getStringExtra(SymbolSearchActivity.EXTRA_SYMBOL);
             if (!currentGlobalSymbolList.contains(symbol)) {
-                String globalPriceQuote = new BackgroundGlobalPriceAPICaller().fetchGlobalPriceQuoteInBackground(symbol);
-                if (!globalPriceQuote.equals("")) {
-                    BigDecimal bd=new BigDecimal(globalPriceQuote).setScale(2, RoundingMode.HALF_DOWN);
-                    currentGlobalPriceQuoteList.add(symbol + " : " + bd.doubleValue());
+                stockViewModel.fetchGlobalPriceQuote(symbol).observe((LifecycleOwner) MainActivity.this, stockData -> {
+                    if (stockData != null && !stockData.getLastPrice().equals("")) {
+                        currentGlobalPriceQuoteList.add(stockData);
 
-                    currentGlobalSymbolList.add(symbol);
-                    currentGlobalPriceQuoteLArrayAdapter.notifyDataSetChanged();
-                    saveDataListToStorage(currentGlobalSymbolList);
-                }
-                else {
-                    Toast.makeText(MainActivity.this, getResources().getString(R.string.CouldNotRetrieveStockInformation), Toast.LENGTH_SHORT).show();
-                }
+                        currentGlobalSymbolList.add(symbol);
+                        currentGlobalPriceQuoteLArrayAdapter.notifyDataSetChanged();
+                        saveDataListToStorage(currentGlobalSymbolList);
+                    } else {
+                        Toast.makeText(MainActivity.this, getResources().getString(R.string.CouldNotRetrieveStockInformation), Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
-
         }
+        SetLoading(View.GONE, View.VISIBLE);
     }
-
-
 
     private void getSharedPreferencesInstance() {
         sharedPreferences = getSharedPreferences(SHARED_PREFS_KEY, Context.MODE_PRIVATE);
@@ -180,13 +228,13 @@ public class MainActivity extends Activity {
     }
 
     private void saveDataListToStorage(List<String> stockInformation) {
-        Set<String> yourDataSet = new HashSet<>(stockInformation);
-        editor.putStringSet("stock_information_list", yourDataSet);
+        Set<String> stockInformationHashSet = new HashSet<>(stockInformation);
+        editor.putStringSet("stock_information_list", stockInformationHashSet);
         editor.apply();
     }
 
     private List<String> retrieveDataListFromStorage() {
-        Set<String> yourDataSet = sharedPreferences.getStringSet("stock_information_list", new HashSet<String>());
-        return new ArrayList<>(yourDataSet);
+        Set<String> stockInformationHashSet = sharedPreferences.getStringSet("stock_information_list", new HashSet<>());
+        return new ArrayList<>(stockInformationHashSet);
     }
 }
