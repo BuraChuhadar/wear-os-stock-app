@@ -2,6 +2,8 @@
 
 A simple stock market app for Wear OS devices that displays stock prices and price changes.
 
+![alt Example Screenshow](docs/Example%20Screenshot.png "Title")
+
 ## Features
 
 - Display stock prices and price changes from CNBC and Finnhub.io
