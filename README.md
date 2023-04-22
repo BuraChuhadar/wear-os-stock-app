@@ -2,7 +2,9 @@
 
 A simple stock market app for Wear OS devices that displays stock prices and price changes.
 
-![alt Example Screenshow](docs/Example%20Screenshot.png "Title")
+<p align="center">
+  <img src="docs/Example%20Screenshot.png" alt="Example Screenshot">
+</p>
 
 ## Features
 
