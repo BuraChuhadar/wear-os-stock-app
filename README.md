@@ -1,35 +1,56 @@
+# Wear OS Stock Market App
 
-# Stock Search Application
-
-A simple Android application that allows users to search for stocks using the [Finnhub API](https://finnhub.io/).
+A simple stock market app for Wear OS devices that displays stock prices and price changes.
 
 ## Features
 
--   Search for stocks by symbol
--   View basic information about a stock, including its name and exchange
--   View real-time price data for a stock
+- Display stock prices and price changes from CNBC and Finnhub.io
+- Add stock symbols to track
+- Refresh stock prices with a button click
+- Customize stock list items with colors based on positive/negative changes
+- Dark mode support
 
-## Requirements
+## Prerequisites
 
--   Android Studio 4.1 or later
--   Android API 21 (Lollipop) or later
--   An API key from Finnhub (sign up for a free API key [here](https://finnhub.io/))
+Before you begin, you will need to obtain an API key from [Finnhub.io](https://finnhub.io/). Create a free account, and copy your API key.
+
+Create a file named `secrets.xml` in the `app/src/main/res/values` directory, and add your API key as follows:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="Finnhub_API_KEY">your_api_key_here</string>
+</resources>
+```
+
+Replace your_api_key_here with the API key you obtained from Finnhub.io.
 
 ## Installation
 
-1.  Clone or download this repository to your local machine.
-2.  Open the project in Android Studio.
-3.  In the `gradle.properties` file, replace `YOUR_API_KEY_HERE` with your Finnhub API key.
-4.  Build and run the project on an emulator or physical device.
+1. Clone this repository:
 
-## Technical Details
+```sh
+git clone https://github.com/your_username/wear-os-stock-app.git
+```
 
-This application was built using Android Studio and Java. It makes use of the following libraries and tools:
+2. Open the project in Android Studio.
+3. Set up an Android Wear emulator or connect a Wear OS device.
+4. Press the "Run" button in Android Studio to build and install the app.
 
--   [Retrofit](https://square.github.io/retrofit/) for API calls
--   [Gson](https://github.com/google/gson) for JSON parsing
--   [OkHttp](https://square.github.io/okhttp/) for networking
+## Usage
 
-## Contribute
+1. Use the "+" button to add stock symbols. The app will fetch stock prices and display them in a list.
+2. Press the "refresh" button to update the stock prices.
+3. Stock prices and their changes will be displayed with green (positive change) or red (negative change) colors.
 
-This project is open source and contributions are welcome. If you find a bug or have a feature request, please open an issue. If you would like to contribute code, please fork the repository and submit a pull request.
+## Contributing
+
+1. Fork the repository on GitHub.
+2. Clone your fork of the repository.
+3. Create a new branch for your changes.
+4. Commit your changes and push them to your branch.
+5. Create a pull request on GitHub for your changes.
+
+## License
+
+This project is licensed under the [MIT License](https://opensource.org/license/mit/).
